@@ -5,6 +5,7 @@ from openai import OpenAI
 from dotenv import load_dotenv
 
 from agent.tools import check_threshold, detect_borderline, detect_outliers
+from agent.prompts import SYSTEM_PROMPT
 
 load_dotenv()
 
@@ -13,49 +14,43 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 tools = [
     {
         "type": "function",
-        "function": {
-            "name": "check_threshold",
-            "description": "Check if sample value exceeds threshold",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "value": {"type": "number"},
-                    "threshold": {"type": "number"}
-                },
-                "required": ["value", "threshold"]
-            }
+        "name": "check_threshold",
+        "description": "Check if sample value exceeds threshold",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "value": {"type": "number"},
+                "threshold": {"type": "number"}
+            },
+            "required": ["value", "threshold"]
         }
     },
     {
         "type": "function",
-        "function": {
-            "name": "detect_borderline",
-            "description": "Detect if value is close to threshold",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "value": {"type": "number"},
-                    "threshold": {"type": "number"}
-                },
-                "required": ["value", "threshold"]
-            }
+        "name": "detect_borderline",
+        "description": "Detect if value is close to threshold",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "value": {"type": "number"},
+                "threshold": {"type": "number"}
+            },
+            "required": ["value", "threshold"]
         }
     },
     {
         "type": "function",
-        "function": {
-            "name": "detect_outliers",
-            "description": "Detect outliers across samples",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "values": {
-                        "type": "array",
-                        "items": {"type": "number"}
-                    }
-                },
-                "required": ["values"]
-            }
+        "name": "detect_outliers",
+        "description": "Detect outliers across samples",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "values": {
+                    "type": "array",
+                    "items": {"type": "number"}
+                }
+            },
+            "required": ["values"]
         }
     }
 ]
@@ -64,7 +59,16 @@ tools = [
 def run_agent(data: dict):
     response = client.responses.create(
         model="gpt-4.1-mini",
-        input=f"Analyze this lab plate data: {data}",
+        input=[
+            {
+                "role": "system",
+                "content": SYSTEM_PROMPT
+            },
+            {
+                "role": "user",
+                "content": f"Analyze this lab plate data: {data}"
+            }
+        ],
         tools=tools
     )
 
