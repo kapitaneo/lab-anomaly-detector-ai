@@ -1,0 +1,10 @@
+{
+  "plate_id": "PCR_001",
+  "samples": [
+    {"id": "A1", "value": 1.2, "threshold": 1.5},
+    {"id": "A2", "value": 1.6, "threshold": 1.5},
+    {"id": "A3", "value": 3.9, "threshold": 1.5},
+    {"id": "A4", "value": 1.4, "threshold": 1.5},
+    {"id": "A5", "value": 1.55, "threshold": 1.5}
+  ]
+}
