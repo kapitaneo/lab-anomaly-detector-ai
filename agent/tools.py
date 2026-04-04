@@ -1,19 +1,18 @@
-def check_threshold(sample):
-    return sample["value"] > sample["threshold"]
+def check_threshold(value, threshold):
+    return value > threshold
 
 
-def detect_borderline(sample):
-    diff = abs(sample["value"] - sample["threshold"])
-    return diff < 0.2
+def detect_borderline(value, threshold):
+    return abs(value - threshold) < 0.2
 
 
-def detect_outliers(samples):
-    values = [s["value"] for s in samples]
+def detect_outliers(values):
     avg = sum(values) / len(values)
+    return [v for v in values if abs(v - avg) > 1.5]
 
-    outliers = []
-    for s in samples:
-        if abs(s["value"] - avg) > 1.5:
-            outliers.append(s["id"])
 
-    return outliers
+TOOL_REGISTRY = {
+    "check_threshold": check_threshold,
+    "detect_borderline": detect_borderline,
+    "detect_outliers": detect_outliers,
+}

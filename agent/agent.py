@@ -4,7 +4,7 @@ import os
 from openai import OpenAI
 from dotenv import load_dotenv
 
-from agent.tools import check_threshold, detect_borderline, detect_outliers
+from agent.executor import execute_tool_call
 from agent.prompts import SYSTEM_PROMPT
 
 load_dotenv()
@@ -79,34 +79,25 @@ def run_agent(data: dict):
             if item.type == "function_call":
                 args = json.loads(item.arguments)
 
-                if item.name == "check_threshold":
-                    result = args["value"] > args["threshold"]
+                print(f"[TOOL CALL] {item.name} args={args}")
 
-                elif item.name == "detect_borderline":
-                    result = abs(args["value"] - args["threshold"]) < 0.2
-
-                elif item.name == "detect_outliers":
-                    values = args["values"]
-                    avg = sum(values) / len(values)
-                    result = [
-                        v for v in values if abs(v - avg) > 1.5
-                    ]
-
-                else:
-                    result = "unknown tool"
+                result = execute_tool_call(item)
+                
+                print(f"[TOOL RESULT] {result}")
 
                 tool_outputs.append({
                     "type": "function_call_output",
                     "call_id": item.call_id,
-                    "output": str(result)
+                    "output": result
                 })
 
-        if tool_outputs:
-            response = client.responses.create(
-                model="gpt-4.1-mini",
-                previous_response_id=response.id,
-                input=tool_outputs
-            )
-            continue
+        if not tool_outputs:
+            return response.output_text
 
+        response = client.responses.create(
+            model="gpt-4.1-mini",
+            previous_response_id=response.id,
+            input=tool_outputs
+        )
+        
         return response.output_text
